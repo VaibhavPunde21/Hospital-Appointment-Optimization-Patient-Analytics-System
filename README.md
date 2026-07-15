@@ -173,6 +173,7 @@ Hospital-Appointment-Optimization-Patient-Analytics-System
 ---
 
 # 📷 Dashboard Preview
+<img width="812" height="458" alt="HAOPS Dashboard" src="https://github.com/user-attachments/assets/376ee804-a586-42da-95cc-c6fadcb93b67" />
 
 **Suggested images:**
 
