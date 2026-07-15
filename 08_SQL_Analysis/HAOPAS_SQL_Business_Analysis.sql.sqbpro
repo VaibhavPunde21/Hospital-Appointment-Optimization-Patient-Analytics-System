@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="Hospital_Appointment.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="2837"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="cleaned_medical_appointments" custom_title="0" dock_id="1" table="4,28:maincleaned_medical_appointments"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011e00ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">-- ============================================
+-- HAOPAS SQL Business Analysis
+-- Project: Hospital Appointment Optimization &amp; Patient Analytics System
+-- Prepared By: Vaibhav Punde
+-- Tool: SQLite
+-- ============================================
+
+
+---Total Appointments---
+
+SELECT COUNT(*) AS Total_Appointments
+FROM cleaned_medical_appointments;
+
+
+---Overall No-Show Rate---
+SELECT
+&quot;No-show&quot;,
+COUNT(*) AS Total_Appointments,
+ROUND(
+COUNT(*)*100.0/
+(SELECT COUNT(*) FROM cleaned_medical_appointments),
+2
+) AS Percentage
+FROM cleaned_medical_appointments
+GROUP BY &quot;No-show&quot;;
+
+
+---Total Shows vs No Shows---
+
+SELECT
+SUM(CASE WHEN No_Show_Flag=0 THEN 1 ELSE 0 END) AS Patients_Attended,
+SUM(CASE WHEN No_Show_Flag=1 THEN 1 ELSE 0 END) AS Patients_Missed
+FROM cleaned_medical_appointments;
+
+
+---No-Show Rate by Gender---
+SELECT
+
+Gender,
+
+COUNT(*) AS Total_Appointments,
+
+SUM(No_Show_Flag) AS No_Shows,
+
+ROUND(
+
+AVG(No_Show_Flag)*100,
+
+2
+
+) AS No_Show_Rate
+
+FROM cleaned_medical_appointments
+
+GROUP BY Gender
+
+ORDER BY No_Show_Rate DESC;
+
+---No-Show by Appointment Weekday---
+SELECT
+
+Appointment_Weekday,
+
+COUNT(*) AS Total_Appointments,
+
+SUM(No_Show_Flag) AS No_Shows,
+
+ROUND(
+
+AVG(No_Show_Flag)*100,
+
+2
+
+) AS No_Show_Rate
+
+FROM cleaned_medical_appointments
+
+GROUP BY Appointment_Weekday
+
+ORDER BY No_Show_Rate DESC;
+
+---Impact of SMS Reminder---
+SELECT
+
+SMS_received,
+
+COUNT(*) AS Total_Appointments,
+
+SUM(No_Show_Flag) AS No_Shows,
+
+ROUND(
+
+AVG(No_Show_Flag)*100,
+
+2
+
+) AS No_Show_Rate
+
+FROM cleaned_medical_appointments
+
+GROUP BY SMS_received;
+
+---Top 10 Neighbourhoods with Highest No-Shows---
+SELECT
+
+Neighbourhood,
+
+COUNT(*) AS Total_Appointments,
+
+SUM(No_Show_Flag) AS No_Shows,
+
+ROUND(
+
+AVG(No_Show_Flag)*100,
+
+2
+
+) AS No_Show_Rate
+
+FROM cleaned_medical_appointments
+
+GROUP BY Neighbourhood
+
+ORDER BY No_Show_Rate DESC
+
+LIMIT 10;
+
+
+
+
+---Average Lead Time---
+SELECT
+
+ROUND(AVG(Lead_Time),2) AS Average_Lead_Time
+
+FROM cleaned_medical_appointments;
+
+
+---Lead Time: Show vs No Show---
+SELECT
+
+&quot;No-show&quot;,
+
+ROUND(AVG(Lead_Time),2) AS Average_Lead_Time
+
+FROM cleaned_medical_appointments
+
+GROUP BY &quot;No-show&quot;;
+
+
+---Chronic Disease Analysis---
+SELECT
+
+Hipertension,
+
+Diabetes,
+
+COUNT(*) AS Total_Appointments,
+
+SUM(No_Show_Flag) AS No_Shows,
+
+ROUND(
+
+AVG(No_Show_Flag)*100,
+
+2
+
+) AS No_Show_Rate
+
+FROM cleaned_medical_appointments
+
+GROUP BY Hipertension, Diabetes;
+
+---Scholarship Analysis---
+SELECT
+
+Scholarship,
+
+COUNT(*) AS Total_Appointments,
+
+SUM(No_Show_Flag) AS No_Shows,
+
+ROUND(
+
+AVG(No_Show_Flag)*100,
+
+2
+
+) AS No_Show_Rate
+
+FROM cleaned_medical_appointments
+
+GROUP BY Scholarship;
+
+---Alcoholism Analysis---
+SELECT
+
+Alcoholism,
+
+COUNT(*) AS Total_Appointments,
+
+SUM(No_Show_Flag) AS No_Shows,
+
+ROUND(
+
+AVG(No_Show_Flag)*100,
+
+2
+
+) AS No_Show_Rate
+
+FROM cleaned_medical_appointments
+
+GROUP BY Alcoholism;
+
+---Handicap Analysis---
+SELECT
+
+Handcap,
+
+COUNT(*) AS Total_Appointments,
+
+SUM(No_Show_Flag) AS No_Shows,
+
+ROUND(
+
+AVG(No_Show_Flag)*100,
+
+2
+
+) AS No_Show_Rate
+
+FROM cleaned_medical_appointments
+
+GROUP BY Handcap;
+
+---Top 20 Repeat Patients---
+SELECT
+
+PatientId,
+
+COUNT(*) AS Total_Appointments,
+
+SUM(No_Show_Flag) AS Total_No_Shows
+
+FROM cleaned_medical_appointments
+
+GROUP BY PatientId
+
+HAVING COUNT(*)&gt;1
+
+ORDER BY Total_No_Shows DESC
+
+LIMIT 20;
+
+
+---Create Patient Segments---
+SELECT
+    PatientId,
+    AppointmentID,
+    Age,
+    Gender,
+    Lead_Time,
+    SMS_received,
+    No_Show_Flag,
+    Diabetes,
+    Hipertension,
+
+    CASE
+
+        WHEN No_Show_Flag = 1
+             AND Lead_Time &gt; 15
+             AND SMS_received = 0
+        THEN 'High Risk No-Show'
+
+        WHEN Diabetes = 1
+             OR Hipertension = 1
+        THEN 'Chronic Care'
+
+        ELSE 'Regular Patient'
+
+    END AS Patient_Segment
+
+FROM cleaned_medical_appointments;
+
+---Segment Distribution---
+SELECT
+
+CASE
+
+WHEN No_Show_Flag=1
+AND Lead_Time&gt;15
+AND SMS_received=0
+
+THEN 'High Risk No-Show'
+
+WHEN Diabetes=1
+OR Hipertension=1
+
+THEN 'Chronic Care'
+
+ELSE 'Regular Patient'
+
+END AS Patient_Segment,
+
+COUNT(*) AS Total_Patients
+
+FROM cleaned_medical_appointments
+
+GROUP BY Patient_Segment
+
+ORDER BY Total_Patients DESC;</sql><current_tab id="0"/></tab_sql></sqlb_project>
