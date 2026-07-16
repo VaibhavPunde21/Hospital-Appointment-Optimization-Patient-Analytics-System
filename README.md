@@ -218,7 +218,7 @@ The HAOPS project successfully transformed raw hospital appointment data into ac
 
 **Vaibhav Punde**
 MBA (Business Analytics)
-Aspiring Business Analyst
+Business Analyst
 
 ---
 
